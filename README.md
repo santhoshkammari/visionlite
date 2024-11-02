@@ -23,15 +23,16 @@ pip install parselite searchlite wordllama
 
 ## 🚀 Quick Start
 
+### GoogleSearch+AI
 ```python
 from ailite import vision
-results = vision("What is quantum computing?", k=3)
+results = vision("What is quantum computing?")
 print(results)
 ```
 ### BingSearch+AI
 ```python
 from ailite import visionbing
-results = visionbing("What is quantum computing?", k=3)
+results = visionbing("What is quantum computing?")
 print(results)
 ```
 
