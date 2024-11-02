@@ -104,10 +104,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Contributors and maintainers
 - Open source community
 
-## 📞 Contact
-
-- GitHub: [YourUsername](https://github.com/YourUsername)
-- Email: your.email@example.com
 
 ## 🔮 Future Plans
 
