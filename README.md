@@ -24,15 +24,17 @@ pip install parselite searchlite wordllama
 ## 🚀 Quick Start
 
 ```python
-from parselite import parse
-from searchlite import google
-from wordllama import WordLlama
-
-# Initialize the language model
-llm = WordLlama.load()
-
+from ailite import vision
 # Basic search and parse
 results = vision("What is quantum computing?", k=3)
+print(results)
+```
+### BingSearch+AI
+```python
+from ailite import visionbing
+
+# Basic search and parse
+results = visionbing("What is quantum computing?", k=3)
 print(results)
 ```
 
@@ -83,16 +85,6 @@ ai_results = visionbing("artificial intelligence trends", k=5)
 - `max_urls`: Maximum number of URLs to process (default: 5)
 - `animation`: Enable/disable search animation (default: False)
 
-### WordLlama Settings
-
-```python
-# Custom model configuration
-llm = WordLlama.load(
-    model_size='large',
-    device='cuda',
-    quantization=8
-)
-```
 
 ## 🤝 Contributing
 
