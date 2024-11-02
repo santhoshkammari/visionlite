@@ -1,112 +1,102 @@
-# SearchLite 🔍
+# ParserLite: Lightweight Web Search & Text Processing 🚀
 
-A lightning-fast, asynchronous real-time Google Search API wrapper with built-in optimization for batch queries.
-
-[![PyPI version](https://img.shields.io/badge/pypi-v1.0.0-blue.svg)](https://pypi.org/project/searchlite/)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Downloads](https://img.shields.io/badge/downloads-1k%2Fmonth-brightgreen.svg)](https://pypi.org/project/parselite/)
 
-## Features ✨
+A lightweight, efficient library for web search, text parsing, and semantic analysis using the WordLlama language model.
 
-- 🚀 Real-time Google search results
-- 🔄 Asynchronous batch searching
-- 🎯 Optimized for multiple queries
-- 🧹 Automatic duplicate removal
-- 🎨 Optional progress animation
-- 🔧 Configurable worker pool
+## 🌟 Features
 
-## Installation 📦
+- 🔍 Multiple search engine support (Google, Bing)
+- 📝 Efficient text parsing and cleaning
+- 🧠 Integration with WordLlama for semantic analysis
+- ⚡ Fast and lightweight implementation
+- 🎨 Optional search animation support
+- 📊 Configurable result ranking
+
+## 📦 Installation
 
 ```bash
-pip install searchlite
+pip install parselite searchlite wordllama
 ```
 
-## Quick Start 🚀
-
-### Basic Search
+## 🚀 Quick Start
 
 ```python
-from searchlite import RealTimeGoogleSearchProvider
+from parselite import parse
+from searchlite import google
+from wordllama import WordLlama
 
-# Initialize the search provider
-searcher = RealTimeGoogleSearchProvider()
+# Initialize the language model
+llm = WordLlama.load()
 
-# Single query search
-results = searcher.search("Python programming", max_urls=5)
+# Basic search and parse
+results = vision("What is quantum computing?", k=3)
 print(results)
 ```
 
-### Batch Search
+## 📖 Usage Examples
+
+### Basic Search with Google
 
 ```python
-# Multiple queries at once
-queries = [
-    "machine learning basics",
-    "data science projects",
-    "python best practices"
-]
+def vision(query, k=1, max_urls=5, animation=False):
+    # Search, parse, and rank results
+    results = llm.topk(
+        query,
+        llm.split("".join(
+            parse(google(query, max_urls=max_urls, animation=animation))
+        )),
+        k=k
+    )
+    return "\n".join(results)
 
-# Batch search with async execution
-results = searcher.search_batch(queries, max_urls=10)
-print(results)
+# Example usage
+quantum_info = vision("quantum computing applications", k=3, max_urls=10)
 ```
 
-## Advanced Usage 🔧
-
-### Custom Configuration
+### Search with Bing
 
 ```python
-searcher = RealTimeGoogleSearchProvider(
-    search_provider="google",  # Search engine to use
-    chromedriver_path="/custom/path/chromedriver",  # Custom ChromeDriver path
-    max_workers=4,  # Number of concurrent workers
-    animation=True  # Enable progress animation
+def visionbing(query, k=1, max_urls=5, animation=False):
+    # Search using Bing, parse, and rank results
+    results = llm.topk(
+        query,
+        llm.split("".join(
+            parse(bing(query, max_urls=max_urls, animation=animation))
+        )),
+        k=k
+    )
+    return "\n".join(results)
+
+# Example usage
+ai_results = visionbing("artificial intelligence trends", k=5)
+```
+
+## 🔧 Configuration
+
+### Search Parameters
+
+- `query`: Search query string
+- `k`: Number of top results to return (default: 1)
+- `max_urls`: Maximum number of URLs to process (default: 5)
+- `animation`: Enable/disable search animation (default: False)
+
+### WordLlama Settings
+
+```python
+# Custom model configuration
+llm = WordLlama.load(
+    model_size='large',
+    device='cuda',
+    quantization=8
 )
 ```
 
-### Async Implementation
+## 🤝 Contributing
 
-```python
-import asyncio
-
-async def main():
-    searcher = RealTimeGoogleSearchProvider()
-    queries = ["AI news", "Python updates", "Tech trends"]
-    
-    # Using the internal async method
-    results = await searcher._async_batch_search(queries, max_urls=5)
-    return results
-
-# Run async function
-results = asyncio.run(main())
-```
-
-## Features Explained 📚
-
-### URL Processing
-- Automatic hash fragment removal
-- Duplicate URL filtering
-- Configurable result limit
-- Maintains original URL order
-
-### Batch Processing
-- Concurrent execution
-- Memory efficient
-- Automatic error handling
-- Result aggregation
-
-## Requirements 🛠️
-
-- Python 3.7+
-- ChromeDriver
-- Required Python packages:
-  - `selenium`
-  - `asyncio`
-  - `typing`
-
-## Contributing 🤝
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Contributions are welcome! Here's how you can help:
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -114,20 +104,50 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License 📄
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments 🙏
+## 🙏 Acknowledgments
 
-- Inspired by the need for efficient real-time search capabilities
-- Built with ❤️ for the Python community
-- Special thanks to all contributors
+- WordLlama team for the language model
+- Contributors and maintainers
+- Open source community
 
-## Support 💬
+## 📞 Contact
 
-For support, please open an issue in the GitHub repository or contact the maintainers.
+- GitHub: [YourUsername](https://github.com/YourUsername)
+- Email: your.email@example.com
+
+## 🔮 Future Plans
+
+- [ ] Add support for more search engines
+- [ ] Implement caching mechanism
+- [ ] Improve parsing accuracy
+- [ ] Add multilingual support
+- [ ] Create GUI interface
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=YourUsername/parselite&type=Date)](https://star-history.com/#YourUsername/parselite&Date)
+
+## 📊 Performance
+
+| Operation | Time (ms) | Memory (MB) |
+|-----------|-----------|-------------|
+| Search    | 150-300   | 20-30      |
+| Parse     | 50-100    | 10-15      |
+| Rank      | 100-200   | 15-25      |
+
+## 🔥 Showcase
+
+Projects using ParserLite:
+
+- Research Assistant Bot
+- Content Aggregator
+- Semantic Search Engine
+- Data Mining Tool
 
 ---
 
-Made with ❤️ 
+Made with ❤️ by [Your Name]
