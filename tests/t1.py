@@ -1,2 +1,2 @@
-from src.ailite import vision
+from src.visionlite import vision
 print(vision("how to run gguf using automodel"))

@@ -6,7 +6,7 @@ set -e
 if [ -d "dist" ]; then
     rm -r dist
 fi
-pip uninstall -y ailite
+pip uninstall -y visionlite
 
 python -m build
 
