@@ -1,28 +1,27 @@
-[build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "visionlite"
-version = "0.1.9"
-description = "A powerful web content fetcher and processor"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
-license = {file = "LICENSE"}
+version = "0.1.11"
+description = "free google results"
+authors = ["Kammari Santhosh"]
 readme = "README.md"
-requires-python = ">=3.7"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+license = "MIT License"
+repository = "https://github.com/santhosh/"
+keywords = [""]
+packages = [
+    {include = "visionlite"}
 ]
-dependencies = [
-    "parselite",
-    "searchlite",
-    "pypdf2",
-    "wordllama",
-    "lxml_html_clean"
+include = [
+#    "chat_gui.py",
+#    "chat_run.py"
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/yourusername/pyopengenai"
-"Bug Tracker" = "https://github.com/yourusername/pyopengenai/issues"
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+#[tool.poetry.scripts]
+#claude-chat = "chat_gui:run_app"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

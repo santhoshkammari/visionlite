@@ -1,2 +1,2 @@
-from src.visionlite import vision
-print(vision("how to run gguf using automodel"))
+from visionlite import google
+print(google("how to run gguf using automodel"))
