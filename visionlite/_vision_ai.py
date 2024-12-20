@@ -159,14 +159,14 @@ def visionai(query,
              k=3,
              model="llama3.2:1b-instruct-q4_K_M",
              base_url="http://localhost:11434",
-             temperature=0.0,
+             temperature=0.1,
              max_retries=5,
              animation=False,
              allow_pdf_extraction=True,
              allow_youtube_urls_extraction=False,
              embed_model=None,
              genai_query_k: int | None = 5,
-             query_k: int | None = 10,
+             query_k: int | None = 5,
              return_type="str"):
     gen_queries = SearchGen(
         model=model,
@@ -201,7 +201,7 @@ def visionai(query,
 
 
 def minivisionai(query):
-    return visionai(query, max_urls=5, k=2, temperature=0.05, max_retries=3, animation=False,
+    return visionai(query, max_urls=5, k=2, temperature=0.1, max_retries=3, animation=False,
                     genai_query_k=3, query_k=5)
 
 
