@@ -1,3 +1,4 @@
+import pprint
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
@@ -6,7 +7,7 @@ import time
 
 from langchain_ollama import ChatOllama
 from langchain.schema import HumanMessage, SystemMessage
-from parselite import parse
+from parselite import parse,FastParserResult
 from searchlite import google
 from visionlite import vision
 from wordllama import WordLlama
@@ -119,14 +120,21 @@ def get_topk(llm=None, query=None, contents=None, k=None):
         return llm.topk(query, llm.split("".join(contents)), k=k)
     except:
         return []
+
+
+
+
 def vision(query, k=1, max_urls=5, animation=False,
            allow_pdf_extraction=True,
            allow_youtube_urls_extraction=False,
-           embed_model=None, genai_query_k=None, model=None, temperature=None, max_retries=None, base_url=None):
+           embed_model=None, genai_query_k=None, model=None, temperature=None, max_retries=None, base_url=None,
+           return_type=None):
     try:
-        urls = google(query, max_urls=max_urls, animation=animation)
-        contents = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
+        urls:List[str] = google(query, animation=animation)
+        contents:List[FastParserResult] = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
                          allow_youtube_urls_extraction=allow_youtube_urls_extraction)
+        contents = [_.content for _ in contents]
+
         llm = embed_model or get_llm()
 
         queries = SearchGen(model=model,
@@ -143,6 +151,9 @@ def vision(query, k=1, max_urls=5, animation=False,
         )
             vars.extend(ans)
         res = list(set(vars))
+
+        if return_type=="list":
+            return [{'url':url,'content':content}  for url,content in zip(urls,res)]
 
         updated_res = "\n".join(res) + "\n\nURLS:\n" + "\n".join(urls)
     except Exception as e:
@@ -241,7 +252,23 @@ def deepvisionai(query,
 
 
 if __name__ == "__main__":
-    res = visionai('what are the new features introduced in latest crewai framework',animation=True)
-    Path("res.txt").write_text(res)
+    queries = [
+        # 'what are the new features introduced in latest crewai framework',
+        # 'how does the crewai framework improve performance',
+        # 'can you explain the architecture of crewai framework',
+        # 'what are the use cases for crewai framework',
+        # 'how does crewai framework handle data privacy',
+        # 'what are the system requirements for crewai framework',
+        # 'can crewai framework be integrated with other tools',
+        # 'what are the licensing terms for crewai framework',
+        # 'how can I get support for crewai framework',
+        'are there any tutorials or documentation available for crewai framework'
+    ]
+
+    for query in queries:
+        u,c = vision(query)
+        print(query,len(u),len(c),len(u)==len(c))
+        print(c)
+        exit()
 
 
