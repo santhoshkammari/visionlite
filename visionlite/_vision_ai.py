@@ -200,14 +200,44 @@ def visionai(query,
         return result_str
 
 
-def minivisionai(query):
-    return visionai(query, max_urls=5, k=2, temperature=0.1, max_retries=3, animation=False,
-                    genai_query_k=3, query_k=5)
+def minivisionai(query,
+                 max_urls=5,
+                 k=2,
+                 model="llama3.2:1b-instruct-q4_K_M",
+                 base_url="http://localhost:11434",
+                 temperature=0.1,
+                 max_retries=3,
+                 animation=False,
+                 allow_pdf_extraction=True,
+                 allow_youtube_urls_extraction=False,
+                 embed_model=None,
+                 genai_query_k: int | None = 3,
+                 query_k: int | None = 5,
+                 return_type="str"):
+    return visionai(query, max_urls=max_urls, k=k, model=model, base_url=base_url, temperature=temperature,
+                    max_retries=max_retries, animation=animation, allow_pdf_extraction=allow_pdf_extraction,
+                    allow_youtube_urls_extraction=allow_youtube_urls_extraction, embed_model=embed_model,
+                    genai_query_k=genai_query_k, query_k=query_k, return_type=return_type)
 
 
-def deepvisionai(query):
-    return visionai(query, max_urls=15, k=10, temperature=0.05, max_retries=10,
-                    allow_pdf_extraction=True, genai_query_k=7, query_k=15)
+def deepvisionai(query,
+                 max_urls=15,
+                 k=10,
+                 model="llama3.2:1b-instruct-q4_K_M",
+                 base_url="http://localhost:11434",
+                 temperature=0.05,
+                 max_retries=10,
+                 animation=False,
+                 allow_pdf_extraction=True,
+                 allow_youtube_urls_extraction=False,
+                 embed_model=None,
+                 genai_query_k: int | None = 7,
+                 query_k: int | None = 15,
+                 return_type="str"):
+    return visionai(query, max_urls=max_urls, k=k, model=model, base_url=base_url, temperature=temperature,
+                    max_retries=max_retries, animation=animation, allow_pdf_extraction=allow_pdf_extraction,
+                    allow_youtube_urls_extraction=allow_youtube_urls_extraction, embed_model=embed_model,
+                    genai_query_k=genai_query_k, query_k=query_k, return_type=return_type)
 
 
 if __name__ == "__main__":
