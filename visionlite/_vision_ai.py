@@ -122,31 +122,27 @@ def get_topk(llm=None, query=None, contents=None, k=None):
 def vision(query, k=1, max_urls=5, animation=False,
            allow_pdf_extraction=True,
            allow_youtube_urls_extraction=False,
-           embed_model=None,genai_query_k=None):
+           embed_model=None, genai_query_k=None, model=None, temperature=None, max_retries=None, base_url=None):
     try:
         urls = google(query, max_urls=max_urls, animation=animation)
         contents = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
                          allow_youtube_urls_extraction=allow_youtube_urls_extraction)
         llm = embed_model or get_llm()
-        if genai_query_k is None:
-            res = get_topk(
-                llm=llm,
-                query=query,
-                contents=contents,
-                k=k
-            )
-        else:
-            queries = SearchGen()(query,genai_query_k)
-            vars = []
-            for query in queries:
-                ans = get_topk(
-                llm=llm,
-                query=query,
-                contents=contents,
-                k=k
-            )
-                vars.extend(ans)
-            res = list(set(vars))
+
+        queries = SearchGen(model=model,
+    temperature=temperature,
+    max_retries=max_retries,
+    base_url=base_url)(query,genai_query_k)
+        vars = []
+        for query in queries:
+            ans = get_topk(
+            llm=llm,
+            query=query,
+            contents=contents,
+            k=k
+        )
+            vars.extend(ans)
+        res = list(set(vars))
 
         updated_res = "\n".join(res) + "\n\nURLS:\n" + "\n".join(urls)
     except Exception as e:
@@ -186,7 +182,11 @@ def visionai(query,
         allow_pdf_extraction=allow_pdf_extraction,
         allow_youtube_urls_extraction=allow_youtube_urls_extraction,
         embed_model=embed_model,
-        genai_query_k=genai_query_k
+        genai_query_k=genai_query_k,
+        temperature=temperature,
+        model=model,
+        max_retries=max_retries,
+        base_url=base_url
     )
 
     with ThreadPoolExecutor(max_workers=5) as executor:
