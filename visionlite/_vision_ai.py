@@ -1,13 +1,16 @@
+import ast
 import pprint
 from concurrent.futures.thread import ThreadPoolExecutor
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import List
 import time
 
+import pandas as pd
 from langchain_ollama import ChatOllama
 from langchain.schema import HumanMessage, SystemMessage
-from parselite import parse,FastParserResult
+from parselite import parse, FastParserResult
 from searchlite import google
 from visionlite import vision
 from wordllama import WordLlama
@@ -107,7 +110,10 @@ class SearchGen:
                     return []
                 print(f"Error occurred: {str(e)}")
 
+
 _loaded_llm = None
+
+
 def get_llm():
     global _loaded_llm
     if _loaded_llm is None:
@@ -122,42 +128,85 @@ def get_topk(llm=None, query=None, contents=None, k=None):
         return []
 
 
+def get_parsed_result(urls=None, allow_pdf_extraction=False, allow_youtube_urls_extraction=False):
+    parser_results: List[FastParserResult] = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
+                                                   allow_youtube_urls_extraction=allow_youtube_urls_extraction)
+    parser_results_v1 = [_ for _ in parser_results if _.content]
+    return parser_results_v1
 
 
-def vision(query, k=1, max_urls=5, animation=False,
+@dataclass
+class MultiQuerySearchResult:
+    query: str
+    results: List[FastParserResult]
+
+
+def multi_extract_url_and_contents(query):
+    list_of_list_of_urls = google(query=query)
+    parsed_list_of_list_of_urls = []
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        parsed_list_of_list_of_urls.extend(list(executor.map(get_parsed_result, list_of_list_of_urls)))
+
+    final = [MultiQuerySearchResult(query=q, results=res) for q, res in zip(query, parsed_list_of_list_of_urls)]
+    return final
+
+
+def get_fastparser_result(query=None, animation=None, allow_pdf_extraction=None, allow_youtube_urls_extraction=None):
+    urls: List[str] = google(query, animation=animation)
+    parser_results_v1 = get_parsed_result(urls, allow_pdf_extraction, allow_youtube_urls_extraction)
+    return parser_results_v1
+
+
+def get_relevant_chunks(query, contents: list,
+                        k=None, split_targe_size: int = 1000, llm=None):
+    final_results = []
+    for result in contents:
+        contents = llm.split(result.content, target_size=split_targe_size)
+        topk = llm.topk(query=query, candidates=contents, k=k)
+        final_results.extend([{"url": result.url, "query": query,
+                               "chunk": c} for c in topk])
+    return final_results
+
+
+def create_dataframe_from_results(multiquery_results):
+    df = pd.DataFrame([{"query": x.query,
+                        "url": y.url,
+                        "content": y.content} for x in multiquery_results for y in x.results])
+    return df
+
+
+def get_topk_chunk_and_url(df):
+    newdf = df.explode('top_k').reset_index(drop=True)
+    df2 = newdf.groupby('top_k')['url'].first().reset_index()
+    return df2
+
+
+def visionai_version2(query, k=3, max_urls=10, animation=False,
            allow_pdf_extraction=True,
            allow_youtube_urls_extraction=False,
-           embed_model=None, genai_query_k=None, model=None, temperature=None, max_retries=None, base_url=None,
+           embed_model=None, genai_query_k=4, model="llama3.2:1b-instruct-q4_K_M",
+           base_url="http://localhost:11434",
+           temperature=0.1, max_retries=3,
            return_type=None):
-    try:
-        urls:List[str] = google(query, animation=animation)
-        contents:List[FastParserResult] = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
-                         allow_youtube_urls_extraction=allow_youtube_urls_extraction)
-        contents = [_.content for _ in contents]
+    llm = embed_model or get_llm()
+    query_generator = SearchGen(model=model,
+                                temperature=temperature,
+                                max_retries=max_retries,
+                                base_url=base_url)
 
-        llm = embed_model or get_llm()
+    genai_query_variations: List = [query] + query_generator(query, genai_query_k)
+    multiquery_results: List[MultiQuerySearchResult] = multi_extract_url_and_contents(query=genai_query_variations)
+    df = create_dataframe_from_results(multiquery_results)
+    # df.to_csv('data.csv',index=False)
+    # df = pd.read_csv("data.csv")
 
-        queries = SearchGen(model=model,
-    temperature=temperature,
-    max_retries=max_retries,
-    base_url=base_url)(query,genai_query_k)
-        vars = []
-        for query in queries:
-            ans = get_topk(
-            llm=llm,
-            query=query,
-            contents=contents,
-            k=k
-        )
-            vars.extend(ans)
-        res = list(set(vars))
+    df['top_k'] = df['content'].apply(lambda x: list(llm.split(x)))
+    topk_df = get_topk_chunk_and_url(df)
 
-        if return_type=="list":
-            return [{'url':url,'content':content}  for url,content in zip(urls,res)]
+    if return_type == "list":
+        return topk_df.to_dict('records')
 
-        updated_res = "\n".join(res) + "\n\nURLS:\n" + "\n".join(urls)
-    except Exception as e:
-        return f"Error: {str(e)}"
+    updated_res = "\n".join(f"{top_k}\n{url}" for top_k, url in zip(topk_df['top_k'], topk_df['url']))
     return updated_res
 
 
@@ -251,7 +300,7 @@ def deepvisionai(query,
                     genai_query_k=genai_query_k, query_k=query_k, return_type=return_type)
 
 
-if __name__ == "__main__":
+def main():
     queries = [
         # 'what are the new features introduced in latest crewai framework',
         # 'how does the crewai framework improve performance',
@@ -266,9 +315,10 @@ if __name__ == "__main__":
     ]
 
     for query in queries:
-        u,c = vision(query)
-        print(query,len(u),len(c),len(u)==len(c))
-        print(c)
-        exit()
+        r = vision(query, base_url="http://192.168.170.76:11434",
+                   genai_query_k=5,return_type='list')
+        print(r)
 
 
+if __name__ == "__main__":
+    main()
