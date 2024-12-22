@@ -201,7 +201,7 @@ def visionai_version3(query, k=3, max_urls=10, animation=False,
     def split_func(x):
         chunks = llm.split(x)
         if len(chunks)<=k:
-            return chunks
+            return list(chunks)
         return list(llm.topk(query, candidates=chunks, k=k))
 
     df['top_k'] = df['content'].apply(split_func)
