@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "visionlite"
-version = "0.1.34"
+version = "0.1.35"
 description = "free google results"
 authors = ["Kammari Santhosh"]
 readme = "README.md"

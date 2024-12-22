@@ -178,6 +178,44 @@ def get_topk_chunk_and_url(df):
 
 
 
+def vision_version1(query, k=3, max_urls=5, animation=False,
+           allow_pdf_extraction=True,
+           allow_youtube_urls_extraction=False,
+           embed_model=None, genai_query_k=3,model="llama3.2:1b-instruct-q4_K_M",
+                      base_url="http://localhost:11434",
+                      temperature=0.1, max_retries=3,):
+    try:
+        urls = google(query, max_urls=max_urls, animation=animation)
+        contents = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
+                         allow_youtube_urls_extraction=allow_youtube_urls_extraction)
+        contents = [c.content for c in contents]
+        llm = embed_model or get_llm()
+
+        queries = SearchGen(model=model,
+    temperature=temperature,
+    max_retries=max_retries,
+    base_url=base_url)(query,genai_query_k)
+        vars = []
+        for query in queries:
+            ans = get_topk(
+            llm=llm,
+            query=query,
+            contents=contents,
+            k=k
+        )
+            vars.extend(ans)
+        res = list(set(vars))
+
+        if len(res)<=3:
+            topk = res
+        else:
+            topk = llm.topk(query==query,candidates=res,k=k)
+
+        updated_res = "\n".join(topk) + "\n\nURLS:\n" + "\n".join(urls)
+    except Exception as e:
+        return f"Error: {str(e)}"
+    return updated_res
+
 
 def visionai_version3(query, k=3, max_urls=10, animation=False,
                       allow_pdf_extraction=True,
@@ -247,7 +285,7 @@ def visionai(query,
         return ["Failed to generate search queries"] if return_type == "list" else "Failed to generate search queries"
 
     vision_with_args = partial(
-        visionai_version3,
+        vision_version1,
         k=k,
         max_urls=max_urls,
         animation=animation,
