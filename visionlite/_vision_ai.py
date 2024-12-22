@@ -1,9 +1,6 @@
-import ast
-import pprint
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
 from typing import List
 import time
 
@@ -12,7 +9,6 @@ from langchain_ollama import ChatOllama
 from langchain.schema import HumanMessage, SystemMessage
 from parselite import parse, FastParserResult
 from searchlite import google
-from visionlite import vision
 from wordllama import WordLlama
 
 
@@ -235,7 +231,7 @@ def visionai(query,
         return ["Failed to generate search queries"] if return_type == "list" else "Failed to generate search queries"
 
     vision_with_args = partial(
-        vision,
+        visionai_version2,
         k=k,
         max_urls=max_urls,
         animation=animation,
@@ -315,8 +311,7 @@ def main():
     ]
 
     for query in queries:
-        r = vision(query, base_url="http://192.168.170.76:11434",
-                   genai_query_k=5,return_type='list')
+        r = visionai(query)
         print(r)
 
 
