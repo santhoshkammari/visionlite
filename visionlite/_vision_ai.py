@@ -137,10 +137,10 @@ class MultiQuerySearchResult:
     results: List[FastParserResult]
 
 
-def multi_extract_url_and_contents(query):
-    list_of_list_of_urls = google(query=query)
+def multi_extract_url_and_contents(query, max_urls):
+    list_of_list_of_urls = google(query=query,max_urls=max_urls)
     parsed_list_of_list_of_urls = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         parsed_list_of_list_of_urls.extend(list(executor.map(get_parsed_result, list_of_list_of_urls)))
 
     final = [MultiQuerySearchResult(query=q, results=res) for q, res in zip(query, parsed_list_of_list_of_urls)]
@@ -177,13 +177,15 @@ def get_topk_chunk_and_url(df):
     return df2
 
 
-def visionai_version2(query, k=3, max_urls=10, animation=False,
-           allow_pdf_extraction=True,
-           allow_youtube_urls_extraction=False,
-           embed_model=None, genai_query_k=4, model="llama3.2:1b-instruct-q4_K_M",
-           base_url="http://localhost:11434",
-           temperature=0.1, max_retries=3,
-           return_type=None):
+
+
+def visionai_version3(query, k=3, max_urls=10, animation=False,
+                      allow_pdf_extraction=True,
+                      allow_youtube_urls_extraction=False,
+                      embed_model=None, genai_query_k=4, model="llama3.2:1b-instruct-q4_K_M",
+                      base_url="http://localhost:11434",
+                      temperature=0.1, max_retries=3,
+                      return_type=None):
     llm = embed_model or get_llm()
     query_generator = SearchGen(model=model,
                                 temperature=temperature,
@@ -191,23 +193,37 @@ def visionai_version2(query, k=3, max_urls=10, animation=False,
                                 base_url=base_url)
 
     genai_query_variations: List = [query] + query_generator(query, genai_query_k)
-    multiquery_results: List[MultiQuerySearchResult] = multi_extract_url_and_contents(query=genai_query_variations)
+    multiquery_results: List[MultiQuerySearchResult] = multi_extract_url_and_contents(query=genai_query_variations,
+                                                                                      max_urls=max_urls)
     df = create_dataframe_from_results(multiquery_results)
-    # df.to_csv('data.csv',index=False)
-    # df = pd.read_csv("data.csv")
 
-    df['top_k'] = df['content'].apply(lambda x: list(llm.split(x)))
-    topk_df = get_topk_chunk_and_url(df)
+    # First get top-k chunks for each content
+    def split_func(x):
+        chunks = llm.split(x)
+        if len(chunks)<=k:
+            return chunks
+        return list(llm.topk(query, candidates=chunks, k=k))
+
+    df['top_k'] = df['content'].apply(split_func)
+
+    # Explode the top_k column to get one chunk per row
+    chunks_df = df.explode('top_k')[['url', 'top_k']].reset_index(drop=True)
+
+    # Get similarity scores for all chunks
+    chunks_df['similarity'] = chunks_df['top_k'].apply(lambda x: llm.similarity(query, x))
+
+    # Get final top k chunks based on similarity scores
+    final_chunks_df = chunks_df.nlargest(k, 'similarity')[['top_k', 'url']]
 
     if return_type == "list":
-        return topk_df.to_dict('records')
+        return final_chunks_df.to_dict('records')
 
-    updated_res = "\n".join(f"{top_k}\n{url}" for top_k, url in zip(topk_df['top_k'], topk_df['url']))
+    # Format the string output
+    updated_res = "\n".join(f"{row['top_k']}\n{row['url']}" for _, row in final_chunks_df.iterrows())
     return updated_res
 
-
 def visionai(query,
-             max_urls=10,
+             max_urls=5,
              k=3,
              model="llama3.2:1b-instruct-q4_K_M",
              base_url="http://localhost:11434",
@@ -231,7 +247,7 @@ def visionai(query,
         return ["Failed to generate search queries"] if return_type == "list" else "Failed to generate search queries"
 
     vision_with_args = partial(
-        visionai_version2,
+        visionai_version3,
         k=k,
         max_urls=max_urls,
         animation=animation,
@@ -311,7 +327,7 @@ def main():
     ]
 
     for query in queries:
-        r = visionai(query)
+        r = visionai(query,base_url="http://192.168.170.76:11434")
         print(r)
 
 
