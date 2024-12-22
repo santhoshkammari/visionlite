@@ -209,7 +209,7 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
         if len(res)<=3:
             topk = res
         else:
-            topk = llm.topk(query==query,candidates=res,k=k)
+            topk = llm.topk(query=query,candidates=res,k=k)
 
         updated_res = "\n".join(topk) + "\n\nURLS:\n" + "\n".join(urls)
     except Exception as e:
