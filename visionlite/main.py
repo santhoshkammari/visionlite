@@ -39,12 +39,12 @@ def _process_vision(query, name, k=1, max_urls=5, animation=False,
         res = llm.topk(query, llm.split("".join(contents)), k=k)
         if return_with_urls:
             return res, urls
-        return res
+        return "\n".join(res)
     except Exception as e:
         return f"Error: {str(e)}"
 
 
-def vision(query, k=1, max_urls=5, animation=False,
+def vision(query, k=3, max_urls=50, animation=False,
            allow_pdf_extraction=True,
            allow_youtube_urls_extraction=False,
            embed_model=None,
@@ -55,7 +55,7 @@ def vision(query, k=1, max_urls=5, animation=False,
                            embed_model, return_only_urls, return_with_urls)
 
 
-def visionbing(query, k=1, max_urls=5, animation=False,
+def visionbing(query, k=3, max_urls=50, animation=False,
                allow_pdf_extraction=True,
                allow_youtube_urls_extraction=False,
                embed_model=None,
