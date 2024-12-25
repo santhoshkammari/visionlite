@@ -10,6 +10,7 @@ from langchain.schema import HumanMessage, SystemMessage
 from parselite import parse, FastParserResult
 from searchlite import google
 from wordllama import WordLlama
+import datetime
 
 
 class SearchGen:
@@ -32,10 +33,10 @@ class SearchGen:
     def _get_system_prompt(self, n: int) -> str:
         """Get the system prompt for query generation"""
         return f'''Generate exactly {n} simple Google search queries based on the user query.
+            today date is {datetime.datetime.now().strftime('%Y-%m-%d')}.
             Format the output as follows:
 
             Examples:
-
             <query>what is capital of france</query>
             1. capital of france
             2. paris france capital
@@ -60,7 +61,7 @@ class SearchGen:
                 queries.append(query.strip('"'))
         return queries
 
-    def __call__(self, query: str, n: int = 5) -> List[str]:
+    def __call__(self, query: str, n: int = 5,ctx:str = "") -> List[str]:
         """
         Generate search queries with retry mechanism.
 
@@ -74,9 +75,10 @@ class SearchGen:
         Raises:
             Exception: If generation fails after max retries
         """
+        query = f'<query>{ctx if ctx else "" + query}</query>'
         messages = [
             SystemMessage(content=self._get_system_prompt(n)),
-            HumanMessage(content=f'<query>{query}</query>')
+            HumanMessage(content=query)
         ]
 
         retry_count = 0
@@ -105,6 +107,9 @@ class SearchGen:
                     print(f"\nFailed after {self.max_retries} attempts. Last error: {str(e)}")
                     return []
                 print(f"Error occurred: {str(e)}")
+
+
+
 
 
 _loaded_llm = None
