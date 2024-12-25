@@ -1,6 +1,6 @@
 from .main import vision,visionbing
-from ._vision_ai import minivisionai,deepvisionai,visionai
+from ._vision_ai import minivisionai,deepvisionai,visionai,SearchGen
 from searchlite import google,bing
 from parselite import parse
-from _tree_variations import Tree,TreeNode
+from ._tree_variations import Tree,TreeNode
 

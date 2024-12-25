@@ -24,8 +24,7 @@ class Tree:
         self.node_id_map: Dict[int, TreeNode] = {}
         self._cache = cache
         self._cache_dir = Path('tree_cache')
-        if self._cache:
-            self._cache_dir.mkdir(exist_ok=True)
+        self._cache_dir.mkdir(exist_ok=True)
 
 
     @property
@@ -315,7 +314,7 @@ class Tree:
     def get_node_by_id(self, node_id: int) -> Optional[TreeNode]:
         return self.node_id_map.get(node_id)
 
-    def get_n_nodes(
+    def get_top_n_nodes(
         self,
         top_n: int | None = None
     ) -> List[TreeNode]:
@@ -331,9 +330,18 @@ class Tree:
 
     def get_top_nodes(self,
                   threshold:float=0.85):
-        all_nodes = self.get_n_nodes()
+        all_nodes = self.get_top_n_nodes()
         all_nodes = [node for node in all_nodes if node.score >= threshold]
         return all_nodes
+
+    def topk(self,k=3,threshold:Optional[float]=None):
+        top_nodes = self.get_top_n_nodes(top_n=k)
+        final = []
+        for _ in top_nodes:
+            if not threshold or _.score >= threshold:
+                final.append(_.query)
+        return final
+
 
     def save(self, filename: str):
         def serialize_node(node: TreeNode) -> dict:

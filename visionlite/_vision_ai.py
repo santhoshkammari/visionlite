@@ -1,7 +1,7 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import partial
-from typing import List
+from typing import List, Optional
 import time
 
 import pandas as pd
@@ -18,7 +18,8 @@ class SearchGen:
 
     def __init__(self, model: str = "llama3.2:1b-instruct-q4_K_M",
                  temperature: float = 0.1,
-                 max_retries: int = 3, base_url="http://localhost:11434"):
+                 max_retries: int = 3, base_url="http://localhost:11434",
+                 num_queries:Optional[int]=5):
         """
         Initialize QueryGenerator.
 
@@ -26,6 +27,7 @@ class SearchGen:
             model_name: Name of the Ollama model to use
             max_retries: Maximum number of retry attempts
         """
+        self.n = num_queries
         self.chat_model = ChatOllama(model=model, temperature=temperature,
                                      base_url=base_url)
         self.max_retries = max_retries
@@ -61,7 +63,7 @@ class SearchGen:
                 queries.append(query.strip('"'))
         return queries
 
-    def __call__(self, query: str, n: int = 5,ctx:str = "") -> List[str]:
+    def __call__(self, query: str, n: Optional[int] = None,ctx:str = "") -> List[str]:
         """
         Generate search queries with retry mechanism.
 
@@ -75,6 +77,8 @@ class SearchGen:
         Raises:
             Exception: If generation fails after max retries
         """
+        if n is None:
+            n= self.n
         query = f'<query>{ctx if ctx else "" + query}</query>'
         messages = [
             SystemMessage(content=self._get_system_prompt(n)),
@@ -211,12 +215,12 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
             vars.extend(ans)
         res = list(set(vars))
 
-        if len(res)<=3:
-            topk = res
+        if len(res) <= 3:
+            topk: List[str] = res
         else:
-            topk = llm.topk(query=query,candidates=res,k=k)
+            topk: List[str] = llm.topk(query=query, candidates=res, k=k)
 
-        updated_res = "\n".join(topk) + "\n\nURLS:\n" + "\n".join(urls)
+        updated_res = "\n### Results:  \n" + "  \n".join(topk) + "  \n\n### URLs:  \n" + "  \n".join(urls)
     except Exception as e:
         return f"Error: {str(e)}"
     return updated_res
@@ -311,7 +315,7 @@ def visionai(query,
     if return_type == "list":
         return results
     else:
-        result_str = "#####".join(results)
+        result_str = "## ".join(results)
         return result_str
 
 

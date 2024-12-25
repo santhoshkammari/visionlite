@@ -60,7 +60,28 @@ def app():
 
     with col2:
         with st.popover("Model Settings"):
-            model = st.text_input("Model Name", value="qwen2.5:7b-instruct")
+            model_names = [
+                "llama3.2:1b-instruct-q4_K_M",
+                "llama3.2:1b-instruct-fp16",
+                "llama3.2:3b-instruct-q2_K",
+                "llama3.2:3b-instruct-fp16",
+                "llama3.2:latest",
+                "llama3.1:8b",
+                "llama3.1:8b-instruct-q4_0",
+                "llama3.1:latest",
+                "qwen2.5:0.5b-instruct",
+                "qwen2.5:1.5b-instruct",
+                "qwen2.5:3b-instruct",
+                "qwen2.5:7b-instruct"
+            ]
+
+            # Model family selector
+            model_name = st.radio(
+                "Model Names",
+                options=model_names,
+                horizontal=True
+            )
+            model = st.text_input("Model Name", value=model_name)
             base_url = st.text_input("Base URL", value="http://localhost:11434")
             temperature = st.slider("Temperature",
                                     value=0.1 if model_type != "Deep Vision" else 0.05,
