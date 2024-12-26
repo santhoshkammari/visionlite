@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from visionlite import minivisionai, deepvisionai, visionai
+from visionlite import minivisionai, deepvisionai, visionai, wordllama_qa
 import pyperclip
 
 
@@ -54,7 +54,7 @@ def app():
         with st.popover("Search Type"):
             model_type = st.radio(
                 "Select Search Type",
-                ["Mini Vision", "Standard Vision", "Deep Vision"],
+                ["Mini Vision", "Standard Vision", "Deep Vision","WordLLama Retreiver"],
                 label_visibility="collapsed"
             )
 
@@ -135,21 +135,24 @@ def app():
                 vision_func = visionai
 
             try:
-                result = vision_func(
-                    query=query,
-                    max_urls=max_urls,
-                    k=k,
-                    model=model,
-                    base_url=base_url,
-                    temperature=temperature,
-                    max_retries=max_retries,
-                    animation=animation,
-                    allow_pdf_extraction=allow_pdf,
-                    allow_youtube_urls_extraction=allow_youtube,
-                    genai_query_k=genai_query_k,
-                    query_k=query_k,
-                    return_type=return_type
-                )
+                if model_type == "WordLLama Retreiver":
+                    result = wordllama_qa(query,k=k)
+                else:
+                    result = vision_func(
+                        query=query,
+                        max_urls=max_urls,
+                        k=k,
+                        model=model,
+                        base_url=base_url,
+                        temperature=temperature,
+                        max_retries=max_retries,
+                        animation=animation,
+                        allow_pdf_extraction=allow_pdf,
+                        allow_youtube_urls_extraction=allow_youtube,
+                        genai_query_k=genai_query_k,
+                        query_k=query_k,
+                        return_type=return_type
+                    )
 
                 # Stream the results
                 full_response = ""
