@@ -321,7 +321,7 @@ def visionai(query,
 
 def minivisionai(query,
                  max_urls=5,
-                 k=2,
+                 k=5,
                  model="llama3.2:1b-instruct-q4_K_M",
                  base_url="http://localhost:11434",
                  temperature=0.1,

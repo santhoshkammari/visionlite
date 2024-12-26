@@ -96,7 +96,7 @@ def app():
                                            value=5 if model_type == "Mini Vision" else 10 if model_type == "Standard Vision" else 15,
                                            min_value=1, max_value=50)
                 k = st.number_input("Top K Results",
-                                    value=2 if model_type == "Mini Vision" else 3 if model_type == "Standard Vision" else 10,
+                                    value=5 if model_type == "Mini Vision" else 5 if model_type == "Standard Vision" else 10,
                                     min_value=1, max_value=20)
                 max_retries = st.number_input("Max Retries",
                                               value=3 if model_type == "Mini Vision" else 5 if model_type == "Standard Vision" else 10,
