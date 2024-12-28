@@ -198,6 +198,10 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
         contents = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
                          allow_youtube_urls_extraction=allow_youtube_urls_extraction)
         contents = [c.content for c in contents]
+
+        if len(contents)==0:
+            return f"Urls:\n{urls}"
+
         llm = embed_model or get_llm()
 
         queries = SearchGen(model=model,
