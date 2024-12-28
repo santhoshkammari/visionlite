@@ -40,7 +40,10 @@ def _process_vision(query, name, k=1, max_urls=5, animation=False,
                      allow_youtube_urls_extraction=allow_youtube_urls_extraction)
     contents = [_.content for _ in contents if _.content]
     llm = embed_model or get_llm()
-    chunks = llm.split("".join(contents))
+    try:
+        chunks = llm.split("".join(contents))
+    except:
+        return "\n".join(urls)
     if len(chunks)==3:
         res = chunks
     else:
