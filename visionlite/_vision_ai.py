@@ -7,6 +7,7 @@ import time
 import pandas as pd
 from langchain_ollama import ChatOllama
 from langchain.schema import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 from parselite import parse, FastParserResult
 from searchlite import google
 from wordllama import WordLlama
@@ -19,7 +20,8 @@ class SearchGen:
     def __init__(self, model: str = "llama3.2:1b-instruct-q4_K_M",
                  temperature: float = 0.1,
                  max_retries: int = 3, base_url="http://localhost:11434",
-                 num_queries:Optional[int]=5):
+                 num_queries:Optional[int]=5,
+                 api_key=""):
         """
         Initialize QueryGenerator.
 
@@ -29,7 +31,9 @@ class SearchGen:
         """
         self.n = num_queries
         self.chat_model = ChatOllama(model=model, temperature=temperature,
-                                     base_url=base_url)
+                                     base_url=base_url) if 'api' not in base_url else ChatOpenAI(
+            model=model, temperature=temperature,base_url=base_url,openai_api_key=api_key
+        )
         self.max_retries = max_retries
 
     def _get_system_prompt(self, n: int) -> str:
@@ -192,7 +196,8 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
            allow_youtube_urls_extraction=False,
            embed_model=None, genai_query_k=3,model="llama3.2:1b-instruct-q4_K_M",
                       base_url="http://localhost:11434",
-                      temperature=0.1, max_retries=3,):
+                      temperature=0.1, max_retries=3,
+                    api_key=""):
     try:
         urls = google(query, max_urls=max_urls, animation=animation)
         contents = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
@@ -207,7 +212,8 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
         queries = SearchGen(model=model,
     temperature=temperature,
     max_retries=max_retries,
-    base_url=base_url)(query,genai_query_k)
+    base_url=base_url,
+                            api_key=api_key)(query,genai_query_k)
         vars = []
         for query in queries:
             ans = get_topk(
@@ -236,12 +242,14 @@ def visionai_version3(query, k=3, max_urls=10, animation=False,
                       embed_model=None, genai_query_k=4, model="llama3.2:1b-instruct-q4_K_M",
                       base_url="http://localhost:11434",
                       temperature=0.1, max_retries=3,
-                      return_type=None):
+                      return_type=None,
+                      api_key=""):
     llm = embed_model or get_llm()
     query_generator = SearchGen(model=model,
                                 temperature=temperature,
                                 max_retries=max_retries,
-                                base_url=base_url)
+                                base_url=base_url,
+                                api_key=api_key)
 
     genai_query_variations: List = [query] + query_generator(query, genai_query_k)
     multiquery_results: List[MultiQuerySearchResult] = multi_extract_url_and_contents(query=genai_query_variations,
@@ -286,12 +294,14 @@ def visionai(query,
              embed_model=None,
              genai_query_k: int | None = 5,
              query_k: int | None = 5,
-             return_type="str"):
+             return_type="str",
+             api_key=""):
     gen_queries = SearchGen(
         model=model,
         temperature=temperature,
         max_retries=max_retries,
-        base_url=base_url
+        base_url=base_url,
+        api_key=api_key
     )
     queries = gen_queries(query, query_k)
     if not queries:
@@ -336,11 +346,13 @@ def minivisionai(query,
                  embed_model=None,
                  genai_query_k: int | None = 3,
                  query_k: int | None = 5,
-                 return_type="str"):
+                 return_type="str",
+                 api_key=""):
     return visionai(query, max_urls=max_urls, k=k, model=model, base_url=base_url, temperature=temperature,
                     max_retries=max_retries, animation=animation, allow_pdf_extraction=allow_pdf_extraction,
                     allow_youtube_urls_extraction=allow_youtube_urls_extraction, embed_model=embed_model,
-                    genai_query_k=genai_query_k, query_k=query_k, return_type=return_type)
+                    genai_query_k=genai_query_k, query_k=query_k, return_type=return_type,
+                    api_key=api_key)
 
 
 def deepvisionai(query,
@@ -356,11 +368,13 @@ def deepvisionai(query,
                  embed_model=None,
                  genai_query_k: int | None = 7,
                  query_k: int | None = 15,
-                 return_type="str"):
+                 return_type="str",
+                 api_key=""):
     return visionai(query, max_urls=max_urls, k=k, model=model, base_url=base_url, temperature=temperature,
                     max_retries=max_retries, animation=animation, allow_pdf_extraction=allow_pdf_extraction,
                     allow_youtube_urls_extraction=allow_youtube_urls_extraction, embed_model=embed_model,
-                    genai_query_k=genai_query_k, query_k=query_k, return_type=return_type)
+                    genai_query_k=genai_query_k, query_k=query_k, return_type=return_type,
+                    api_key=api_key)
 
 
 def main():
