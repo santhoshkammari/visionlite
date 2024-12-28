@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "visionlite"
-version = "0.1.56"
+version = "0.1.57"
 description = "free google results"
 authors = [ "Kammari Santhosh",]
 readme = "README.md"

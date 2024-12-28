@@ -77,7 +77,14 @@ min_waiting_time:int=2
                          allow_youtube_urls_extraction=allow_youtube_urls_extraction)
         contents = [_.content for _ in contents]
         llm = embed_model or get_llm()
-        res = llm.topk(query, llm.split("".join(contents)), k=k)
+        try:
+            chunks = llm.split("".join(contents))
+        except:
+            return "\n".join(urls)
+        if len(chunks) == 3:
+            res = chunks
+        else:
+            res = llm.topk(query, candidates=chunks, k=k)
         if return_with_urls:
             return res, urls
         return "\n".join(res)
