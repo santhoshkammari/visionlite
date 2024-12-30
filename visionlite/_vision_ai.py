@@ -17,11 +17,12 @@ import datetime
 class SearchGen:
     """A class to generate search queries using ChatOllama"""
 
-    def __init__(self, model: str = "llama3.2:1b-instruct-q4_K_M",
+    def __init__(self, model: str = "llama3.2:3b-instruct-q4_K_M",
                  temperature: float = 0.1,
                  max_retries: int = 3, base_url="http://localhost:11434",
                  num_queries:Optional[int]=5,
-                 api_key=""):
+                 api_key="",
+                 llm = None):
         """
         Initialize QueryGenerator.
 
@@ -30,10 +31,10 @@ class SearchGen:
             max_retries: Maximum number of retry attempts
         """
         self.n = num_queries
-        self.chat_model = ChatOllama(model=model, temperature=temperature,
+        self.chat_model = llm or (ChatOllama(model=model, temperature=temperature,
                                      base_url=base_url) if 'api' not in base_url else ChatOpenAI(
             model=model, temperature=temperature,base_url=base_url,openai_api_key=api_key
-        )
+        ))
         self.max_retries = max_retries
 
     def _get_system_prompt(self, n: int) -> str:
@@ -197,7 +198,7 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
            embed_model=None, genai_query_k=3,model="llama3.2:1b-instruct-q4_K_M",
                       base_url="http://localhost:11434",
                       temperature=0.1, max_retries=3,
-                    api_key=""):
+                    api_key="",llm = None):
     try:
         urls = google(query, max_urls=max_urls, animation=animation)
         contents = parse(urls, allow_pdf_extraction=allow_pdf_extraction,
@@ -213,6 +214,7 @@ def vision_version1(query, k=3, max_urls=5, animation=False,
     temperature=temperature,
     max_retries=max_retries,
     base_url=base_url,
+                            llm=llm,
                             api_key=api_key)(query,genai_query_k)
         vars = []
         for query in queries:
@@ -295,13 +297,15 @@ def visionai(query,
              genai_query_k: int | None = 5,
              query_k: int | None = 5,
              return_type="str",
-             api_key=""):
+             api_key="",
+             llm = None):
     gen_queries = SearchGen(
         model=model,
         temperature=temperature,
         max_retries=max_retries,
         base_url=base_url,
-        api_key=api_key
+        api_key=api_key,
+        llm=llm
     )
     queries = gen_queries(query, query_k)
     if not queries:
@@ -319,7 +323,8 @@ def visionai(query,
         temperature=temperature,
         model=model,
         max_retries=max_retries,
-        base_url=base_url
+        base_url=base_url,
+        llm=llm
     )
 
     with ThreadPoolExecutor(max_workers=5) as executor:
